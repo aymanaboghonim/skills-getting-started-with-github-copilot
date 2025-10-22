@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     (email) =>
                       `<li class="participant-item" style="display: flex; align-items: center; gap: 0.5em;">
                         <span class="participant-email">${email}</span>
-                        <span class="delete-participant" title="Remove participant" data-activity="${encodeURIComponent(name)}" data-email="${encodeURIComponent(email)}" style="cursor:pointer;color:#c00;font-size:1.1em;">&#128465;</span>
+                        <span class="delete-participant" title="Remove participant" data-activity="${encodeURIComponent(name)}" data-email="${encodeURIComponent(email)}">&#128465;</span>
                       </li>`
                   )
                   .join("")}
