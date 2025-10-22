@@ -66,8 +66,8 @@ activities = {
         "participants": ["charlotte@mergington.edu", "jack@mergington.edu"]
     },
     # Intellectual activities
-# Intellectual activities
     "Debate Club": {
+        "description": "Develop public speaking and argumentation skills",
         "description": "Develop public speaking and argumentation skills",
         "schedule": "Fridays, 4:00 PM - 5:30 PM",
         "max_participants": 16,
