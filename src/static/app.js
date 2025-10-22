@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${details.participants
                   .map(
                     (email) =>
-                      `<li class="participant-item" style="display: flex; align-items: center; gap: 0.5em;">
+                      `<li class="participant-item">
                         <span class="participant-email">${email}</span>
                         <span class="delete-participant" title="Remove participant" data-activity="${encodeURIComponent(name)}" data-email="${encodeURIComponent(email)}">&#128465;</span>
                       </li>`
