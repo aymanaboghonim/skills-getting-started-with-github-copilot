@@ -20,11 +20,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Participants section
+        let participantsHTML = "";
+        if (details.participants.length > 0) {
+          participantsHTML = `
+            <div class="participants-section">
+              <strong>Participants:</strong>
+              <ul class="participants-list">
+                ${details.participants
+                  .map(
+                    (email) =>
+                      `<li class="participant-item">
+                        <span class="participant-email">${email}</span>
+                        <span class="delete-participant" title="Remove participant" data-activity="${encodeURIComponent(name)}" data-email="${encodeURIComponent(email)}">&#128465;</span>
+                      </li>`
+                  )
+                  .join("")}
+              </ul>
+            </div>
+          `;
+        } else {
+          participantsHTML = `
+            <div class="participants-section no-participants">
+              <em>No participants yet.</em>
+            </div>
+          `;
+        }
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          ${participantsHTML}
         `;
 
         activitiesList.appendChild(activityCard);
@@ -41,13 +69,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+
+  // Handle participant delete (event delegation)
+  activitiesList.addEventListener("click", async (event) => {
+    if (event.target.classList.contains("delete-participant")) {
+      const deleteBtn = event.target;
+      const activity = decodeURIComponent(deleteBtn.getAttribute("data-activity"));
+      const email = decodeURIComponent(deleteBtn.getAttribute("data-email"));
+
+      // Remove any existing inline confirm
+      document.querySelectorAll('.inline-confirm').forEach(el => el.remove());
+
+      // Create inline confirm
+      const confirmDiv = document.createElement('span');
+      confirmDiv.className = 'inline-confirm';
+      confirmDiv.style.marginLeft = '0.5em';
+      confirmDiv.innerHTML = `
+        <button class="confirm-btn" style="background:#c00;color:#fff;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:0.9em;">Confirm?</button>
+        <button class="cancel-btn" style="background:#eee;color:#333;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;font-size:0.9em;">Cancel</button>
+      `;
+      deleteBtn.parentNode.appendChild(confirmDiv);
+
+      // Cancel button
+      confirmDiv.querySelector('.cancel-btn').onclick = (e) => {
+        confirmDiv.remove();
+        e.stopPropagation();
+      };
+
+      // Confirm button
+      confirmDiv.querySelector('.confirm-btn').onclick = async (e) => {
+        try {
+          const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+            method: "POST",
+          });
+          const result = await response.json();
+          if (response.ok) {
+            messageDiv.textContent = result.message;
+            messageDiv.className = "success";
+            fetchActivities();
+          } else {
+            messageDiv.textContent = result.detail || "An error occurred";
+            messageDiv.className = "error";
+          }
+          messageDiv.classList.remove("hidden");
+          setTimeout(() => {
+            messageDiv.classList.add("hidden");
+          }, 5000);
+        } catch (error) {
+          messageDiv.textContent = "Failed to remove participant. Please try again.";
+          messageDiv.className = "error";
+          messageDiv.classList.remove("hidden");
+        }
+        confirmDiv.remove();
+        e.stopPropagation();
+      };
+    }
+  });
+
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     const email = document.getElementById("email").value;
     const activity = document.getElementById("activity").value;
-
     try {
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/signup?email=${encodeURIComponent(email)}`,
@@ -62,6 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // Refresh activities list after signup
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
